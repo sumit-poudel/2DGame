@@ -6,21 +6,22 @@ import javax.imageio.ImageIO;
 import java.awt.*;
 import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 
 public class TileManager {
-    Tile[] tile= new Tile[10];
-    int[][] mapData;
-    int rows, cols;
-    String line;
+    Tile[] tile = new Tile[10];
     GamePanel gp;
+    int[][] mapData;
 
     public TileManager(GamePanel gp) {
         this.gp = gp;
-    new Thread(()->getTileImage()).start();
+        mapData=new int[gp.maxworldrows][gp.maxworldcols];
+        new Thread(() -> getTileImage()).start();
+        new Thread(() ->  loadMap()).start();
     }
 
-    void getTileImage() {
+   public void getTileImage() {
         try {
             tile[0] = new Tile();
             tile[0].images = ImageIO.read(getClass().getClassLoader().getResourceAsStream("tiles/water.png"));
@@ -39,11 +40,31 @@ public class TileManager {
         }
     }
 
-    void loadMap() {
+   public void loadMap() {
+        try {
+        InputStream mapInputStream = getClass().getClassLoader().getResourceAsStream("maps/world01.txt");
+        BufferedReader br = new BufferedReader(new InputStreamReader(mapInputStream));
+       int rows = 0;
+        int cols = 0;
+            while (rows < gp.maxworldcols && cols < gp.maxworldrows) {
+               String line = br.readLine();
+                while (cols < gp.maxworldcols) {
+                    String[] numbers = line.split(" ");
+                    mapData[rows][cols] = Integer.parseInt(numbers[cols]);
+                    cols++;
+                }
+                rows++;
+                cols=0;
+            }
+            br.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
 
     }
 
     public void draw(Graphics2D g2) {
-       g2.drawImage(tile[4].images,0,0,gp.tileSize, gp.tileSize, null);
+        int num=mapData[40][40];
+        g2.drawImage(tile[num].images, 0, 0, gp.tileSize, gp.tileSize, null);
     }
 }
